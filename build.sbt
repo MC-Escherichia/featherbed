@@ -5,13 +5,13 @@ import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 
 lazy val buildSettings = Seq(
   organization := "io.github.finagle",
-  version := "0.2.1-SNAPSHOT",
+  version := "0.3.0-SNAPSHOT",
   scalaVersion := "2.11.8"
 )
 
-val finagleVersion = "6.38.0"
-val shapelessVersion = "2.3.0"
-val catsVersion = "0.7.2"
+val finagleVersion = "6.39.0"
+val shapelessVersion = "2.3.1"
+val catsVersion = "0.8.1"
 
 lazy val docSettings = Seq(
   autoAPIMappings := true
@@ -21,9 +21,7 @@ lazy val baseSettings = docSettings ++ Seq(
   libraryDependencies ++= Seq(
     "com.twitter" %% "finagle-http" % finagleVersion,
     "com.chuusai" %% "shapeless" % shapelessVersion,
-    "org.typelevel" %% "cats" % catsVersion,
-    "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-    "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+    "org.typelevel" %% "cats" % catsVersion
   ),
   resolvers += Resolver.sonatypeRepo("snapshots")
 )
@@ -67,11 +65,20 @@ lazy val noPublish = Seq(
 lazy val allSettings = publishSettings ++ baseSettings ++ buildSettings
 
 lazy val `featherbed-core` = project
-  .settings(allSettings ++ tutSettings)
+  .settings(allSettings)
 
 lazy val `featherbed-circe` = project
   .settings(allSettings)
   .dependsOn(`featherbed-core`)
+
+lazy val `featherbed-test` = project
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.4.2" % "test",
+      "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+    ),
+    buildSettings ++ noPublish
+  ).dependsOn(`featherbed-core`, `featherbed-circe`)
 
 val scaladocVersionPath = settingKey[String]("Path to this version's ScalaDoc")
 val scaladocLatestPath = settingKey[String]("Path to latest ScalaDoc")
@@ -79,12 +86,12 @@ val tutPath = settingKey[String]("Path to tutorials")
 
 lazy val docs: Project = project
     .settings(
-      allSettings ++ ghpages.settings ++ Seq(
+      allSettings ++ tutSettings ++ ghpages.settings ++ Seq(
         scaladocVersionPath := ("api/" + version.value),
         scaladocLatestPath := (if (isSnapshot.value) "api/latest-snapshot" else "api/latest"),
         tutPath := "doc",
         includeFilter in makeSite := (includeFilter in makeSite).value || "*.md" || "*.yml",
-        addMappingsToSiteDir(tut in `featherbed-core`, tutPath),
+        addMappingsToSiteDir(tut, tutPath),
         addMappingsToSiteDir(mappings in (featherbed, ScalaUnidoc, packageDoc), scaladocLatestPath),
         addMappingsToSiteDir(mappings in (featherbed, ScalaUnidoc, packageDoc), scaladocVersionPath),
         ghpagesNoJekyll := false,
@@ -96,4 +103,4 @@ lazy val docs: Project = project
 lazy val featherbed = project
   .in(file("."))
   .settings(unidocSettings ++ tutSettings ++ baseSettings ++ buildSettings)
-  .aggregate(`featherbed-core`, `featherbed-circe`)
+  .aggregate(`featherbed-core`, `featherbed-circe`, `featherbed-test`)

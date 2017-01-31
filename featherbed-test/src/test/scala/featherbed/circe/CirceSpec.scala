@@ -1,20 +1,22 @@
 package featherbed.circe
 
-import io.circe._, io.circe.generic.auto._, io.circe.syntax._, io.circe.parser.parse
+import cats.implicits._
+import io.circe.parser.parse
+import io.circe.syntax._
 import org.scalatest.FlatSpec
-import shapeless.{Coproduct, Witness}
-import shapeless.union.Union
+import shapeless.Coproduct
 
-case class Foo(someText : String, someInt : Int)
+case class Foo(someText: String, someInt: Int)
 
 class CirceSpec extends FlatSpec {
 
   "post request of a case class" should "derive JSON encoder" in {
 
-    import com.twitter.util.{Future,Await}
-    import com.twitter.finagle.{Service,Http}
-    import com.twitter.finagle.http.{Request,Response}
     import java.net.InetSocketAddress
+
+    import com.twitter.finagle.http.{Request, Response}
+    import com.twitter.finagle.{Http, Service}
+    import com.twitter.util.{Await, Future}
 
     val server = Http.serve(new InetSocketAddress(8766), new Service[Request, Response] {
       def apply(request: Request): Future[Response] = Future {
@@ -49,9 +51,10 @@ class CirceSpec extends FlatSpec {
   }
 
   "API example" should "compile" in {
-    import shapeless.Coproduct
     import java.net.URL
+
     import com.twitter.util.Await
+    import shapeless.Coproduct
     case class Post(userId: Int, id: Int, title: String, body: String)
 
     case class Comment(postId: Int, id: Int, name: String, email: String, body: String)
