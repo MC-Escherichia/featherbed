@@ -11,11 +11,12 @@ import com.twitter.finagle.http.{Method, Request, Response}
 import com.twitter.io.Buf
 import com.twitter.util.{Await, Future}
 import featherbed.request._
+import featherbed.support.DecodeAll
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FreeSpec
-import shapeless.Witness
+import shapeless.{:+:, CNil, Witness}
 
 class ErrorHandlingSpec extends FreeSpec with MockFactory with ClientTest {
 
@@ -130,7 +131,6 @@ class ErrorHandlingSpec extends FreeSpec with MockFactory with ClientTest {
         .withContent(content, "test/content")
         .accept("application/json")
 
-      val a = implicitly[Encoder[TestContent, Witness.`"test/content"`.T]]
       intercept[RequestBuildingError](Await.result(req.send[TestError, TestResponse]()))
     }
 

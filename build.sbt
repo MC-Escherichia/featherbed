@@ -6,12 +6,14 @@ import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 lazy val buildSettings = Seq(
   organization := "io.github.finagle",
   version := "0.3.0-SNAPSHOT",
-  scalaVersion := "2.11.8"
+  scalaVersion := "2.11.11",
+  crossScalaVersions := Seq("2.11.11", "2.12.2")
 )
 
-val finagleVersion = "6.39.0"
-val shapelessVersion = "2.3.1"
-val catsVersion = "0.8.1"
+val finagleVersion = "6.42.0"
+val shapelessVersion = "2.3.2"
+val catsVersion = "0.9.0"
+val circeVersion = "0.7.0"
 
 lazy val docSettings = Seq(
   autoAPIMappings := true
@@ -68,8 +70,14 @@ lazy val `featherbed-core` = project
   .settings(allSettings)
 
 lazy val `featherbed-circe` = project
-  .settings(allSettings)
-  .dependsOn(`featherbed-core`)
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core" % circeVersion,
+      "io.circe" %% "circe-parser" % circeVersion,
+      "io.circe" %% "circe-generic" % circeVersion
+    ),
+    allSettings
+  ).dependsOn(`featherbed-core`)
 
 lazy val `featherbed-test` = project
   .settings(
